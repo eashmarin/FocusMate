@@ -23,7 +23,7 @@
   ],
 
   "action": {
-    "default_popup": "popup/timer.html"
+    "default_popup": "/popup/timer.html"
   },
 
   "background": {
