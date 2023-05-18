@@ -1,0 +1,6 @@
+ru.nsu.fit.bot
+ru.nsu.fit.bot.api.rest_controllers
+ru.nsu.fit.bot.api.service
+ru.nsu.fit.bot.config
+ru.nsu.fit.bot.model
+ru.nsu.fit.bot.repository

@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"ru.nsu.fit.bot"},{"l":"ru.nsu.fit.bot.api.rest_controllers"},{"l":"ru.nsu.fit.bot.api.service"},{"l":"ru.nsu.fit.bot.config"},{"l":"ru.nsu.fit.bot.model"},{"l":"ru.nsu.fit.bot.repository"}];updateSearchResults();

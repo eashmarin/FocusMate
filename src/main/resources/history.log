@@ -58,3 +58,11 @@
 2023-04-28 21:36:26 INFO  - Delete user with chat id = 1256354800
 2023-04-28 21:36:27 INFO  - Execute command /deletedata for user with chat id = 1256354800
 2023-04-28 21:36:29 INFO  - Execute command mydata for user with chat id = 1256354800
+2023-05-06 19:19:23 INFO  - Save user with chat id = 1256354800
+2023-05-06 19:19:23 INFO  - Execute command /start for user with chat id = 1256354800
+2023-05-18 17:22:46 INFO  - Execute command /start for user with chat id = 1256354800
+2023-05-18 17:22:48 INFO  - Execute command /mydata for user with chat id = 1256354800
+2023-05-18 17:22:50 INFO  - Delete user with chat id = 1256354800
+2023-05-18 17:22:50 INFO  - Execute command /deletedata for user with chat id = 1256354800
+2023-05-18 17:22:53 INFO  - Execute command /help for user with chat id = 1256354800
+2023-05-18 17:22:56 INFO  - Execute command mydata for user with chat id = 1256354800
