@@ -56,7 +56,7 @@ public class Limit {
     @Override
     public String toString() {
         return "Limit{" +
-                ", url=" + url +
+                "url=" + url +
                 ", limitTime=" + limitTime +
                 '}';
     }

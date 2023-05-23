@@ -30,8 +30,7 @@ public class UserService {
         return userRepository.findByToken(token);
     }
 
-    public void deleteUser(String token) {
-        User user = userRepository.findByToken(token);
+    public void deleteUser(User user) {
         userRepository.deleteById(user.getId());
     }
 

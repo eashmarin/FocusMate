@@ -8,68 +8,54 @@ import com.api.focusmate.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.SecureRandom;
-import java.util.Base64;
-
 @RestController
 @ControllerAdvice(basePackages = "com.api.focusmate.controller")
 @RequestMapping("/user")
-public class UserController {
-
+public class UserTokenTelegramController {
     private final UserService userService;
     private final LimitService limitService;
 
     @Autowired
-    public UserController(UserService userService, LimitService limitService) {
+    public UserTokenTelegramController(UserService userService, LimitService limitService) {
         this.userService = userService;
         this.limitService = limitService;
     }
 
+    @PostMapping("{token}/telegram")
+    public void post(){
+        throw new UsingUnspecifiedFunctionException("Не определена");
+    }
 
-    @DeleteMapping("{token}")
-    public void delete(@PathVariable String token) {
+    @GetMapping("{token}/telegram")
+    public Long getTelegramByToken(@PathVariable String token) {
         User user = userService.getUserByToken(token);
         if(user == null){
             throw new UserNotFoundException("Пользователь не найден");
         }
-
         else {
-            userService.deleteUser(user);
+            return user.getTelegram();
         }
     }
 
-    @PostMapping
-    public String addUser() {
-        User user = new User();
-
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] tokenBytes = new byte[24];
-        secureRandom.nextBytes(tokenBytes);
-
-        String token = null;
-        User exist;
-        boolean find = true;
-
-        while (find) {
-            token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes).substring(0, 24);
-            exist = userService.getUserByToken(token);
-
-            if(exist == null){
-                find = false;
-            }
+    @PutMapping("{token}/telegram/{telegram}")
+    public void addLimit(@PathVariable String token, @PathVariable Long telegram){
+        User user = userService.getUserByToken(token);
+        if(user == null){
+            throw new UserNotFoundException("Пользователь не найден");
         }
-        user.setToken(token);
-        userService.saveUser(user);
-        return user.getToken();
+        else {
+            user.setTelegram(telegram);
+            userService.editUser(user);
+        }
     }
 
-    @PutMapping
-    public void put(){
+    @PatchMapping("{token}/telegram")
+    public void patch(){
         throw new UsingUnspecifiedFunctionException("Не определена");
     }
 
-    @PatchMapping
-    public void patch(){
+    @DeleteMapping("{token}/telegram")
+    public void delete(){
         throw new UsingUnspecifiedFunctionException("Не определена");
     }
 }
