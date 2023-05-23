@@ -23,23 +23,27 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
-    public User getUserByToken(Integer token) {
+    public Long getTelegramByToken(String token) {
+        return userRepository.findByToken(token).getTelegram();
+    }
+    public User getUserByToken(String token) {
         return userRepository.findByToken(token);
     }
 
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+    public void deleteUser(String token) {
+        User user = userRepository.findByToken(token);
+        userRepository.deleteById(user.getId());
     }
 
     public User saveUser(User user) {
-        if (user.getId() != null && userRepository.existsById(user.getId())) {
-            User existingUser = userRepository.findById(user.getId()).orElse(null);
-            if (existingUser != null) {
-                existingUser.setToken(user.getToken());
-                existingUser.setTelegram(user.getTelegram());
-                return userRepository.save(existingUser);
-            }
-        }
         return userRepository.save(user);
+    }
+
+    public User editUser(User user){
+        User existingUser = userRepository.findById(user.getId()).orElse(null);
+
+        existingUser.setToken(user.getToken());
+        existingUser.setTelegram(user.getTelegram());
+        return userRepository.save(existingUser);
     }
 }

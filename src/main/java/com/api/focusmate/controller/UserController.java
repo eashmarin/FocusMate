@@ -1,57 +1,96 @@
 package com.api.focusmate.controller;
 
-import com.api.focusmate.model.Limits;
+import com.api.focusmate.model.Limit;
 import com.api.focusmate.model.User;
-import com.api.focusmate.service.LimitsService;
+import com.api.focusmate.service.LimitService;
 import com.api.focusmate.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.security.SecureRandom;
+import java.util.Base64;
 
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
-    private final LimitsService limitsService;
+    private final LimitService limitService;
 
     @Autowired
-    public UserController(UserService userService, LimitsService limitsService) {
+    public UserController(UserService userService, LimitService limitService) {
         this.userService = userService;
-        this.limitsService = limitsService;
+        this.limitService = limitService;
     }
 
-    @GetMapping
-    public Iterable<User> getAll() {
-        return userService.getAllUsers();
-    }
-
-    @GetMapping("{id}")
-    public User getById(@PathVariable long id) {
-        return userService.getUserById(id);
-    }
-
-    @GetMapping("{id}/limits")
-    public Iterable<Limits> getAllLimitsById(@PathVariable long id) {
-        return limitsService.getAllLimitsByUserId(id);
-    }
-
-    @GetMapping("{token}/limits")
-    public Iterable<Limits> getAllLimitsByToken(@PathVariable int token) {
+    @GetMapping("{token}/limit")
+    public Iterable<Limit> getAllLimitsByToken(@PathVariable String token) {
         Long id = userService.getUserByToken(token).getId();
-        return limitsService.getAllLimitsByUserId(id);
+        return limitService.getAllLimitsByUserId(id);
     }
 
-    @DeleteMapping("{id}")
-    public void delete(@PathVariable long id) {
-         userService.deleteUser(id);
+    @GetMapping("{token}/telegram")
+    public Long getTelegramByToken(@PathVariable String token) {
+        return userService.getTelegramByToken(token);
+    }
+
+    @DeleteMapping("{token}")
+    public void delete(@PathVariable String token) {
+         userService.deleteUser(token);
+    }
+
+    @PostMapping("{token}/limit")
+    public void addLimit(@PathVariable String token, @RequestBody Limit limit){
+        User user = userService.getUserByToken(token);
+        limit.setUser(user);
+        limitService.saveLimits(limit);
+    }
+
+    @PutMapping("{token}/telegram/{telegram}")
+    public void addLimit(@PathVariable String token, @PathVariable Long telegram){
+        User user = userService.getUserByToken(token);
+        user.setTelegram(telegram);
+        userService.editUser(user);
+    }
+
+    @PutMapping("{token}/limit/{url}")
+    public void changeLimit(@PathVariable String token, @RequestBody Limit limit, @PathVariable String url){
+        Iterable<Limit> limits = limitService.getAllLimitsByUserId(userService.getUserByToken(token).getId());
+        Limit foundLimit = null;
+
+        for (Limit l : limits) {
+            if (l.getUrl().equals(url)) {
+                foundLimit = limit;
+                break;
+            }
+        }
+
+        limit.setId(foundLimit.getId());
+        limitService.editLimit(limit);
     }
 
     @PostMapping
-    public User addUser(@RequestBody User user) {
-        return userService.saveUser(user);
+    public String addUser() {
+        User user = new User();
+
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] tokenBytes = new byte[24];
+        secureRandom.nextBytes(tokenBytes);
+
+        String token = null;
+        User exist;
+        boolean find = true;
+
+        while (find) {
+            token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes).substring(0, 24);
+            exist = userService.getUserByToken(token);
+
+            if(exist == null){
+                find = false;
+            }
+        }
+        user.setToken(token);
+        userService.saveUser(user);
+        return user.getToken();
     }
-
-
 }

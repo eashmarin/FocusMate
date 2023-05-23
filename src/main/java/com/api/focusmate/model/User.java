@@ -12,7 +12,7 @@ public class User {
     private Long id;
 
     @Column(name = "token", nullable = false, unique = true)
-    private Integer token;
+    private String token;
 
     @Column(name = "telegram", unique = true)
     private Long telegram;
@@ -25,11 +25,11 @@ public class User {
         this.id = id;
     }
 
-    public Integer getToken() {
+    public String getToken() {
         return token;
     }
 
-    public void setToken(Integer token) {
+    public void setToken(String token) {
         this.token = token;
     }
 
@@ -44,7 +44,6 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
                 ", token=" + token +
                 ", telegram=" + telegram +
                 '}';
