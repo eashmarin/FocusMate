@@ -1,0 +1,67 @@
+body {
+    max-width: 425px;
+    max-height: 500px;
+}
+
+.timer-panel {
+    width: 425px;
+    height: 200px;
+}
+
+.settings-panel {
+    width: 425px;
+    height: 400px;
+}
+
+.table-responsive {
+    max-height: 500px;
+}
+
+
+
+#save-table-button {
+    display: none;
+}
+/*.tab {*/
+/*    display: flex;*/
+/*    justify-content: space-around;*/
+/*    overflow: hidden;*/
+/*    border: 1px solid #ccc;*/
+/*    background-color: #f1f1f1;*/
+/*}*/
+
+/*.tab button {*/
+/*    flex-grow: 1;*/
+/*    background-color: inherit;*/
+/*    float: left;*/
+/*    border: none;*/
+/*    outline: none;*/
+/*    cursor: pointer;*/
+/*    padding: 14px 16px;*/
+/*    transition: 0.3s;*/
+/*}*/
+
+/*.tab-content {*/
+/*    display: none;*/
+/*    justify-content: center;*/
+/*    align-items: center;*/
+/*    text-align: center;*/
+/*}*/
+
+/*.tab button:hover {*/
+/*    background-color: #ddd;*/
+/*}*/
+
+/*.tab button.active {*/
+/*    background-color: #ccc;*/
+/*}*/
+
+/*.timer-panel {*/
+/*    font-size: 72px;*/
+/*    font-family: "Tahoma";*/
+/*}*/
+
+
+/*#Timer {*/
+/*    display: flex;*/
+/*}*/

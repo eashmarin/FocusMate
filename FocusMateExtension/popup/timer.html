@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../bootstrap-5.3.0-alpha3-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="style.css">
+    <script defer src="../bootstrap-5.3.0-alpha3-dist/js/bootstrap.min.js"></script>
+    <script defer src="../popup.js"></script>
+</head>
+<body>
+<ul class="nav nav-tabs d-flex" id="nav-tab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button id="timer-tab-button" class="nav-link active" data-bs-toggle="tab" data-bs-target="#Timer" type="button"
+                role="tab" aria-controls="Timer" aria-selected="true">Timer
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button id="settings-tab-button" class="nav-link" data-bs-toggle="tab" data-bs-target="#Settings" type="button"
+                role="tab" aria-controls="Settings" aria-selected="false">Settings
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content h-100">
+    <div class="tab-pane fade show active h-100" id="Timer"
+         role="tabpanel" aria-labelledby="timer-tab">
+        <div class="timer-panel d-flex h-100 align-items-center justify-content-center">
+            <h1 id="timer-text" class="display-1">00:00:00</h1>
+        </div>
+    </div>
+    <div class="tab-pane fade h-100" id="Settings" role="tabpanel"
+         aria-labelledby="settings-tab">
+        <div class="settings-panel h-100 d-flex flex-column align-items-center justify-content-center">
+            <div class="table-responsive w-100">
+                <table class="table table-striped text-center overflow-x-hidden overflow-y-auto">
+                    <thead>
+                    <tr>
+                        <th>hostname</th>
+                        <th>limit (min)</th>
+                    </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+            <div>
+                <button id="add-row-button" class="btn btn-outline-dark m-auto">Add</button>
+                <button id="edit-table-button" class="btn btn-outline-dark m-auto">Edit</button>
+                <button id="save-table-button" class="btn btn-outline-success m-auto">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
