@@ -8,13 +8,65 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById("save-table-button").addEventListener("click", (e) => saveTable());
 
     chrome.storage.local.get(tabTimeObjectKey, (result) => {
-        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
             let activeTab = tabs[0];
             let currentHostName = new URL(activeTab.url).hostname;
             totalSeconds = Math.round(JSON.parse(result[tabTimeObjectKey])[currentHostName].trackedSeconds);
         });
     });
+
+    if (!document.getElementById("table-body").hasChildNodes()) {
+        chrome.storage.local.get("limits").then((limits) => {
+            const jsonLimits = JSON.parse(limits["limits"]);
+            let limitsLength = jsonLimits.length;
+            
+            let tableBody = document.getElementById("table-body");
+    
+            for (let i = 0; i < limitsLength; i++) {
+                const tr = document.createElement("tr");
+                tableBody.append(tr);
+    
+                const td1 = document.createElement("td");
+                td1.innerHTML = jsonLimits[i].hostname;
+                tr.appendChild(td1);
+    
+                const td2 = document.createElement("td");
+                td2.innerHTML = jsonLimits[i].time;
+                tr.appendChild(td2);
+            }
+        });
+    }
 });
+
+// chrome.runtime.onInstalled(function() {
+//     let totalTimeData = {};
+
+//     chrome.storage.local.get(["totalTime"]).then((storageData) => {
+//        storageData = storageData["totalTime"];
+//     });
+// });
+
+// chrome.runtime.onStartup.addListener(function() {
+//     chrome.storage.local.get("limits").then((limits) => {
+//         const jsonLimits = JSON.parse(limits["limits"]);
+//         let limitsLength = jsonLimits.length;
+        
+//         let tableBody = document.getElementById("table-body");
+
+//         for (let i = 0; i < limitsLength; i++) {
+//             const tr = document.createElement("tr");
+//             tableBody.append(tr);
+
+//             const td1 = document.createElement("td");
+//             td1.innerHTML = jsonLimits[i].hostname;
+//             tr.appendChild(td1);
+
+//             const td2 = document.createElement("td");
+//             td2.innerHTML = jsonLimits[i].time;
+//             tr.appendChild(td2);
+//         }
+//     });
+// });
 
 setInterval(() => {
     setTime(totalSeconds);
@@ -140,4 +192,37 @@ function saveTable() {
     if (hasEmptyRow) {
         table.deleteRow(-1);
     }
+
+    saveTableData();
+}
+
+function saveTableData() {
+    let data = [];
+
+    let table = document.getElementById("table-body");
+    let rows = table.getElementsByTagName('tr'); // получаем все строки таблицы
+    for (var i = 0; i < rows.length; i++) {
+        let hostname = rows[i].getElementsByTagName('td')[0].innerHTML;
+        let time = rows[i].getElementsByTagName('td')[1].innerHTML;
+
+        let dict = {};
+        dict['hostname'] = hostname;
+        dict['time'] = time;
+
+        data[i] = dict;
+    }
+
+    console.log(JSON.stringify({ "limits": data }));
+
+    chrome.storage.local.get(["limits"]).then((limits) => {
+        let newLimits = {};
+        newLimits["limits"] = JSON.stringify(data);
+        chrome.storage.local.set(newLimits);
+
+        if (rows.length === JSON.parse(limits["limits"]).length) {
+            //TODO: PUT requests here
+        } else {
+            //TODO: POST request here
+        }
+    });
 }
