@@ -4,6 +4,7 @@ const limitsKey = "limits";
 
 let browserFocused = true;
 setInterval(checkBrowserFocus, 3000);
+
 function checkBrowserFocus() {
     chrome.windows.getCurrent(function (browser) {
         if (browserFocused === false && browser.focused === true) {
@@ -11,7 +12,7 @@ function checkBrowserFocus() {
                 let lastActiveTab = getLastActiveTab(storageData);
                 let newLastTab = {};
                 console.log(lastActiveTab);
-                newLastTab[lastActiveTabKey] = JSON.stringify({ "url": lastActiveTab.url, "lastDateVal": Date.now() });
+                newLastTab[lastActiveTabKey] = JSON.stringify({"url": lastActiveTab.url, "lastDateVal": Date.now()});
                 chrome.storage.local.set(newLastTab);
             });
         }
@@ -30,57 +31,28 @@ function checkBrowserFocus() {
 
 setInterval(checkLimit, 10000);
 
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if (request.event === 'pageLoading') {
+        checkLimit();
+    }
+});
+
 function checkLimit() {
     chrome.storage.local.get([tabTimeObjectKey, lastActiveTabKey, limitsKey]).then((storageData) => {
         const currentHostname = getLastActiveTab(storageData).url;
+
         const jsonLimits = JSON.parse(storageData[limitsKey]);
-        console.log(currentHostname);
-        if (jsonLimits.some(limit => limit.hostname === currentHostname)) {
-            const definedLimit = jsonLimits.filter(item => item.hostname === currentHostname)[0].time;
-            const currTime = JSON.parse(storageData[tabTimeObjectKey])[currentHostname].trackedSeconds;
-            console.log(secondsToMinutes(currTime));
-            if (secondsToMinutes(currTime) >= definedLimit) {
-                //addFilter(currentHostname);
+        const currentLimit = jsonLimits.filter(item => item.hostname === currentHostname)[0];
+        if (currentLimit === undefined) {
+            return;
+        }
 
-                let blockSites = {};
-                chrome.storage.local.get(["block"]).then((storageData) => {
-                    blockSites = storageData["block"];
-
-                    if (blockSites === undefined) {
-                        let blocksData = {};
-                        blocksData["block"] = JSON.stringify([{ hostname: currentHostname, date: Date.now() }]);
-                        chrome.storage.local.set(blocksData);
-                        return;
-                    }
-
-                    let jsonBlocks = JSON.parse(blockSites);
-                    if (!Object.values(jsonBlocks).some(blockSite => blockSite.hostname === currentHostname)) {
-                        Object.values(jsonBlocks).push({ hostname: currentHostname });
-                        let blocksData = {};
-                        blocksData["block"] = JSON.stringify(jsonBlocks);
-                        chrome.storage.local.set(blocksData);
-                    } else {
-                        let blockedCurrentInfo = Object.values(jsonBlocks).filter(blockSite => blockSite.hostname === currentHostname)[0];
-                        
-                        if (!isToday(blockedCurrentInfo.date)) {
-                            blocksData["block"] = JSON.stringify(Object.values(jsonBlocks).filter(blockSite => blockSite != blockedCurrentInfo));
-                            chrome.storage.local.set(blocksData);
-                        }
-                    }
-                });
-            } else {
-                let blockSites = {};
-                chrome.storage.local.get(["block"]).then((storageData) => {
-                    blockSites = storageData["block"];
-                    let jsonBlocks = JSON.parse(blockSites);
-                    if (jsonBlocks.some(blockSite => blockSite.hostname === currentHostname)) {
-                        jsonBlocks.pop();
-                        let blocksData = {};
-                        blocksData["block"] = JSON.stringify(jsonBlocks);
-                        chrome.storage.local.set(blocksData);
-                    }
-                });
-            }
+        const currTime = JSON.parse(storageData[tabTimeObjectKey])[currentHostname].trackedSeconds;
+        if (secondsToMinutes(currTime) >= currentLimit.time) {
+            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                const activeTabId = tabs[0].id;
+                chrome.tabs.sendMessage(activeTabId, {event: 'block'});
+            });
         }
     });
 }
@@ -96,7 +68,7 @@ chrome.tabs.onActivated.addListener(function (activeInfo) {
 });
 
 function processTabChange(tabId) {
-    chrome.tabs.query({ "active": true }, function (tabs) {
+    chrome.tabs.query({"active": true}, function (tabs) {
         if (tabs.length === 0 || tabs[0] == null || !browserFocused) {
             return;
         }
@@ -116,7 +88,7 @@ function updateLocalStorageData(hostname, storageData) {
     let lastActiveTab = getLastActiveTab(storageData);
 
     let newLastTab = {};
-    newLastTab[lastActiveTabKey] = JSON.stringify({ "url": hostname, "lastDateVal": Date.now() });
+    newLastTab[lastActiveTabKey] = JSON.stringify({"url": hostname, "lastDateVal": Date.now()});
     chrome.storage.local.set(newLastTab, function () {
         let newTabTime = {};
         newTabTime[tabTimeObjectKey] = JSON.stringify(updateTabTime(tabTime, lastActiveTab));
@@ -155,7 +127,7 @@ function updateTabTime(tabTime, lastActiveTab) {
 }
 
 function setTabTime(tabTime, url, value) {
-    tabTime[url] = { trackedSeconds: value["trackedSeconds"], lastDateVal: value["lastDateVal"] };
+    tabTime[url] = {trackedSeconds: value["trackedSeconds"], lastDateVal: value["lastDateVal"]};
 }
 
 function getTabTime(storageData) {
@@ -194,10 +166,10 @@ function secondsToMinutes(seconds) {
     return seconds / 60;
 }
 
-function isToday (date) {  
+function isToday(date) {
     const now = new Date()
-  
-      return date.getDate() === now.getDate() &&
-           date.getMonth() === now.getMonth() &&
-           date.getFullYear() === now.getFullYear()
-  }
+
+    return date.getDate() === now.getDate() &&
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear()
+}

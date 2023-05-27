@@ -3,29 +3,30 @@
   "name": "Focus Mate",
   "version": "0.1",
   "description": "Time tracking & custom limits",
-
   "permissions": [
     "activeTab",
     "background",
     "storage",
-    "tabs",
-    "webRequest",
-    "webRequestBlocking"
+    "tabs"
   ],
-
   "content_scripts": [
     {
-      "js": ["/scripts/content.js"],
+      "js": [
+        "/scripts/content.js"
+      ],
       "matches": [
         "<all_urls>"
       ]
     }
   ],
-
+  "externally_connectable": {
+    "matches": [
+      "<all_urls>"
+    ]
+  },
   "action": {
     "default_popup": "/popup/timer.html"
   },
-
   "background": {
     "service_worker": "scripts/background.js",
     "type": "module"

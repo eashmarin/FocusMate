@@ -1,6 +1,6 @@
 const tabTimeObjectKey = "tabTimeObject"; // {key: url, value: {trackedSeconds: number, lastDateVal: number}}
 const lastActiveTabKey = "lastActiveTab"; // {url: string, lastDateVal: number}
-let totalSeconds;
+let totalSeconds = 0;
 
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById("add-row-button").addEventListener("click", (e) => addRow());
@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!document.getElementById("table-body").hasChildNodes()) {
         chrome.storage.local.get("limits").then((limits) => {
+            if (limits["limits"] === undefined) {
+                return;
+            }
+
             const jsonLimits = JSON.parse(limits["limits"]);
             let limitsLength = jsonLimits.length;
             
@@ -37,36 +41,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
-
-// chrome.runtime.onInstalled(function() {
-//     let totalTimeData = {};
-
-//     chrome.storage.local.get(["totalTime"]).then((storageData) => {
-//        storageData = storageData["totalTime"];
-//     });
-// });
-
-// chrome.runtime.onStartup.addListener(function() {
-//     chrome.storage.local.get("limits").then((limits) => {
-//         const jsonLimits = JSON.parse(limits["limits"]);
-//         let limitsLength = jsonLimits.length;
-        
-//         let tableBody = document.getElementById("table-body");
-
-//         for (let i = 0; i < limitsLength; i++) {
-//             const tr = document.createElement("tr");
-//             tableBody.append(tr);
-
-//             const td1 = document.createElement("td");
-//             td1.innerHTML = jsonLimits[i].hostname;
-//             tr.appendChild(td1);
-
-//             const td2 = document.createElement("td");
-//             td2.innerHTML = jsonLimits[i].time;
-//             tr.appendChild(td2);
-//         }
-//     });
-// });
 
 setInterval(() => {
     setTime(totalSeconds);
