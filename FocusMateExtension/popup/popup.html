@@ -10,8 +10,14 @@
 <body>
 <ul class="nav nav-tabs d-flex" id="nav-tab" role="tablist">
     <li class="nav-item" role="presentation">
-        <button id="timer-tab-button" class="nav-link active" data-bs-toggle="tab" data-bs-target="#Timer" type="button"
-                role="tab" aria-controls="Timer" aria-selected="true">Timer
+        <button id="website-timer-tab-button" class="nav-link active" data-bs-toggle="tab"
+                data-bs-target="#website-timer" type="button"
+                role="tab" aria-controls="website-timer" aria-selected="true">
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button id="timer-tab-button" class="nav-link" data-bs-toggle="tab" data-bs-target="#timer" type="button"
+                role="tab" aria-controls="timer" aria-selected="false">Global Timer
         </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -22,7 +28,13 @@
 </ul>
 
 <div class="tab-content h-100">
-    <div class="tab-pane fade show active h-100" id="Timer"
+    <div class="tab-pane fade show active h-100" id="website-timer"
+         role="tabpanel" aria-labelledby="timer-tab">
+        <div class="timer-panel d-flex h-100 align-items-center justify-content-center">
+            <h1 id="website-timer-text" class="display-1">00:00:00</h1>
+        </div>
+    </div>
+    <div class="tab-pane fade h-100" id="timer"
          role="tabpanel" aria-labelledby="timer-tab">
         <div class="timer-panel d-flex h-100 align-items-center justify-content-center">
             <h1 id="timer-text" class="display-1">00:00:00</h1>
@@ -47,6 +59,10 @@
                 <button id="edit-table-button" class="btn btn-outline-dark m-auto">Edit</button>
                 <button id="save-table-button" class="btn btn-outline-success m-auto">Save</button>
             </div>
+        </div>
+
+        <div id="token-container" class="d-flex justify-content-center mt-2">
+            <button id="token-button" class="btn btn-outline-info m-auto text-center">Get Token</button>
         </div>
     </div>
 </div>

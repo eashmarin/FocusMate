@@ -2,19 +2,35 @@ const tabTimeObjectKey = "tabTimeObject"; // {key: url, value: {trackedSeconds: 
 const lastActiveTabKey = "lastActiveTab"; // {url: string, lastDateVal: number}
 const limitsKey = "limits";
 
+let isTelegramLinked = false;
+let wasTelegramMsgSent = false;
+
+let totalSeconds = 0;
+let inactiveTime = 0;
+
 let browserFocused = true;
 setInterval(checkBrowserFocus, 3000);
-
 function checkBrowserFocus() {
     chrome.windows.getCurrent(function (browser) {
-        if (browserFocused === false && browser.focused === true) {
-            chrome.storage.local.get([tabTimeObjectKey, lastActiveTabKey]).then((storageData) => {
-                let lastActiveTab = getLastActiveTab(storageData);
-                let newLastTab = {};
-                console.log(lastActiveTab);
-                newLastTab[lastActiveTabKey] = JSON.stringify({"url": lastActiveTab.url, "lastDateVal": Date.now()});
-                chrome.storage.local.set(newLastTab);
-            });
+        if (browserFocused === false) {
+            if (browser.focused) {
+                chrome.storage.local.get([tabTimeObjectKey, lastActiveTabKey]).then((storageData) => {
+                    let lastActiveTab = getLastActiveTab(storageData);
+                    let newLastTab = {};
+                    console.log(lastActiveTab);
+                    newLastTab[lastActiveTabKey] = JSON.stringify({
+                        "url": lastActiveTab.url,
+                        "lastDateVal": Date.now()
+                    });
+                    chrome.storage.local.set(newLastTab);
+                });
+            } else {
+                inactiveTime += 3;
+            }
+        }
+
+        if (browserFocused) {
+            totalSeconds += 3;
         }
 
         if (browserFocused && browser.focused === false) {
@@ -29,15 +45,64 @@ function checkBrowserFocus() {
     });
 }
 
-setInterval(checkLimit, 10000);
+chrome.runtime.onStartup.addListener(() => {
+    chrome.storage.local.get(["token"]).then((storageData) => {
+        if (storageData["token"]) {
+            let token = storageData["token"];
+            //TODO: GET request localhost:8080/user/{token}/telegram
+            // if response OK { set isTelegramLinked variable }
+        }
+    });
+});
+
+setInterval(() => {
+    checkLimits();
+    saveTotalTime();
+}, 10000);
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.event === 'pageLoading') {
-        checkLimit();
+        checkLimits();
     }
 });
 
-function checkLimit() {
+function saveTotalTime() {
+    chrome.storage.local.set({"totalTime": totalSeconds.toString()});
+}
+
+function checkLimits() {
+    checkTotalLimit();
+    checkWebsiteLimit();
+}
+
+function checkTotalLimit() {
+    if (secondsToMinutes(inactiveTime) >= 5) {
+        inactiveTime = 0;
+        totalSeconds = 0;
+        if (isTelegramLinked) {
+            wasTelegramMsgSent = false;
+        } else {
+            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                const activeTabId = tabs[0].id;
+                chrome.tabs.sendMessage(activeTabId, {event: 'notification hide'});
+            });
+        }
+    }
+
+    if (secondsToMinutes(totalSeconds) >= 25) {
+        if (isTelegramLinked && !wasTelegramMsgSent) {
+            // TODO: no API for message send yet
+            wasTelegramMsgSent = true;
+        } else {
+            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                const activeTabId = tabs[0].id;
+                chrome.tabs.sendMessage(activeTabId, {event: 'notification popup'});
+            });
+        }
+    }
+}
+
+function checkWebsiteLimit() {
     chrome.storage.local.get([tabTimeObjectKey, lastActiveTabKey, limitsKey]).then((storageData) => {
         const currentHostname = getLastActiveTab(storageData).url;
 
@@ -93,12 +158,6 @@ function updateLocalStorageData(hostname, storageData) {
         let newTabTime = {};
         newTabTime[tabTimeObjectKey] = JSON.stringify(updateTabTime(tabTime, lastActiveTab));
         chrome.storage.local.set(newTabTime);
-
-
-        // chrome.storage.local.get(["totalTime"]).then((storageData) => {
-        //     let newTotalTime = {};
-        //     newTotalTime["totalTime"] = storageData["totalTime"] + 
-        // });
     });
 }
 
@@ -106,6 +165,7 @@ function updateTabTime(tabTime, lastActiveTab) {
     let lastUrl = lastActiveTab["url"];
     let passedSeconds = (Date.now() - lastActiveTab["lastDateVal"]) * 0.001;
     if (!isToday(new Date(lastActiveTab["lastDateVal"]))) {
+        tabTime[lastUrl].trackedSeconds = 0;
         passedSeconds = 0;
     }
 
