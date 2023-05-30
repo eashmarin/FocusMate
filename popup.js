@@ -191,45 +191,109 @@ function saveTableData() {
         let token = {};
         chrome.storage.local.get(["token"]).then((storageData) => {
             token = storageData["token"]
+            for (let i = 0; i < rows.length; i++) {
+                const payload = {
+                    url: data[i].hostname,
+                    limitTime: data[i].time,
+                    user_id: { token: token },
+                };
+                console.log(JSON.stringify(payload))
+                var ulrStr = 'http://localhost:8080/user/' + token + '/limit';
+                fetch(ulrStr.toString(), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                })
+                    .then((response) => {
+                        if (response.ok) {
+                            console.log('Запрос успешно выполнен.');
+                        } else {
+                            console.error('Ошибка выполнения запроса.');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Ошибка:', error);
+                    });
+
+            }
+            if (rows.length !== JSON.parse(limits["limits"]).length) {
+
+                let min = Math.min(rows.length, JSON.parse(limits["limits"]).length);
+                let max = Math.max(rows.length, JSON.parse(limits["limits"]).length);
+                for (let i = min; i < max; i++) {
+                    const payload2 = {
+                        url: data[i].hostname,
+                        limitTime: data[i].time,
+                        user_id: { token: token },
+                    };
+                    console.log(JSON.stringify(payload2))
+                    var ulrStr = 'http://localhost:8080/user/' + token + '/limit';
+                    fetch(ulrStr.toString(), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload2),
+                    })
+                        .then((response) => {
+                            if (response.ok) {
+                                console.log('Запрос успешно выполнен.');
+                            } else {
+                                console.error('Ошибка выполнения запроса.');
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Ошибка:', error);
+                        });
+                }
+            }
         });
 
-        for (let i = 0; i < rows.length; i++) {
-            //TODO: PUT requests here
-            // PUT localhost:8080/user/{token}/limit
-            // body of request = {url: data[i].hostname, limit_time: data[i].time, user_id: {token: token}}
-        }
 
-        if (rows.length !== JSON.parse(limits["limits"]).length) {
 
-            let min = Math.min(rows.length, JSON.parse(limits["limits"]).length);
-            let max = Math.max(rows.length, JSON.parse(limits["limits"]).length);
-            for (let i = min; i < max; i++) {
-                //TODO: POST requests here
-                // POST localhost:8080/user/{token}/limit
-                // body of request = {url: data[i].hostname, limit_time: data[i].time, user_id: {token: token}}
-            }
-        }
+
     });
 }
 
-function onTokenBtnClicked() {
+
+async function onTokenBtnClicked() {
     document.getElementById("token-button").remove();
 
     let input = document.createElement("input")
     input.setAttribute("type", "text");
     input.setAttribute("class", "form-control text-center");
     input.readOnly = true;
-    input.value = getToken();
+
+    const token = await getToken();
+    input.value = token;
+
     document.getElementById("token-container").appendChild(input);
 }
 
-function getToken() {
-    chrome.storage.local.get(["token"]).then((storageData) => {
-        if (storageData["token"]) {
-            return storageData["token"];
-        } else {
-            return "undefined";
-            // TODO: return token from POST localhost:8080/user
-        }
-    })
+async function getToken() {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(["token"]).then((storageData) => {
+            if (storageData["token"]) {
+                console.log('TokenIs');
+                resolve(storageData["token"].toString());
+            } else {
+                fetch('http://localhost:8080/user', {
+                    method: 'POST'
+                })
+                    .then(response => response.text())
+                    .then(data => {
+                        console.log(data); // Вывод полученного токена в консоль
+                        // Дальнейшая обработка полученных данных
+                        chrome.storage.local.set({token: data});
+                        resolve(data);
+                    })
+                    .catch(error => {
+                        console.error('Произошла ошибка:', error);
+                        reject(error);
+                    });
+            }
+        });
+    });
 }

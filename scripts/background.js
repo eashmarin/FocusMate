@@ -51,6 +51,23 @@ chrome.runtime.onStartup.addListener(() => {
             let token = storageData["token"];
             //TODO: GET request localhost:8080/user/{token}/telegram
             // if response OK { set isTelegramLinked variable }
+            const ulrStr = 'http://localhost:8080/user/' + token + '/telegram';
+            console.log('startup')
+            fetch(ulrStr.toString(), {
+                method: 'GET'
+            })
+                .then(response => response.text())
+                .then(data => {
+                    if (data === null){
+                        console.log(data);
+                    }else{
+                        console.log(data);
+                        isTelegramLinked = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Произошла ошибка:', error);
+                });
         }
     });
 });
@@ -118,6 +135,24 @@ function checkWebsiteLimit() {
                 const activeTabId = tabs[0].id;
                 chrome.tabs.sendMessage(activeTabId, {event: 'block'});
             });
+            console.log('limit is out')
+            if (storageData["token"]) {
+                let token = storageData["token"];
+                const urlStr = 'http://localhost:8080/user/' + token + '/telegram';
+                fetch(urlStr.toString(), {
+                    method: 'POST'
+                })
+                    .then((response) => {
+                        if (response.ok) {
+                            console.log('Запрос успешно выполнен.');
+                        } else {
+                            console.error('Ошибка выполнения запроса.');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Ошибка:', error);
+                    });
+            }
         }
     });
 }
