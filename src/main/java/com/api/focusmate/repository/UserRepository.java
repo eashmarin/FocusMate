@@ -1,4 +1,4 @@
-package com.api.focusmate.rerository;
+package com.api.focusmate.repository;
 
 import com.api.focusmate.model.User;
 import org.springframework.data.repository.CrudRepository;

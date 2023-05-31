@@ -1,5 +1,5 @@
 import com.api.focusmate.FocusmateApplication;
-import com.api.focusmate.rerository.UserRepository;
+import com.api.focusmate.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

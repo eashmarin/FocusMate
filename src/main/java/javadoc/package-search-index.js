@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.api.focusmate"},{"l":"com.api.focusmate.controller"},{"l":"com.api.focusmate.exception"},{"l":"com.api.focusmate.model"},{"l":"com.api.focusmate.repository"},{"l":"com.api.focusmate.service"}];updateSearchResults();

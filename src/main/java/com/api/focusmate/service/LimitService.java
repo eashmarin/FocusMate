@@ -1,7 +1,7 @@
 package com.api.focusmate.service;
 
 import com.api.focusmate.model.Limit;
-import com.api.focusmate.rerository.LimitRepository;
+import com.api.focusmate.repository.LimitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

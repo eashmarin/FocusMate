@@ -1,6 +1,6 @@
 package com.api.focusmate.service;
 
-import com.api.focusmate.rerository.UserRepository;
+import com.api.focusmate.repository.UserRepository;
 import com.api.focusmate.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
