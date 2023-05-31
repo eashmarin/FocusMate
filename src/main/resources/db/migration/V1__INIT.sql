@@ -14,4 +14,4 @@ create table if not exists notifier
 );
 
 insert into notifier(id, notification)
-values (1, 'It''s time to do the exercises! You''ve been looking at the screen for 1 hour');
+values (1, 'It''s time to do the exercises! You have exceeded your browser limit');
