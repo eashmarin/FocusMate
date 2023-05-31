@@ -1,7 +1,6 @@
-unnamed package
-com.api.focusmate
-com.api.focusmate.controller
-com.api.focusmate.exception
-com.api.focusmate.model
-com.api.focusmate.repository
-com.api.focusmate.service
+ru.nsu.fit.bot
+ru.nsu.fit.bot.api.rest_controllers
+ru.nsu.fit.bot.api.service
+ru.nsu.fit.bot.config
+ru.nsu.fit.bot.model
+ru.nsu.fit.bot.repository
