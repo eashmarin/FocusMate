@@ -1,0 +1,2 @@
+INSERT INTO "user" VALUES (1, 'token_example', 123)
+ON CONFLICT DO NOTHING;
