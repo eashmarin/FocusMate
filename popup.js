@@ -1,35 +1,48 @@
 const tabTimeObjectKey = "tabTimeObject"; // {key: url, value: {trackedSeconds: number, lastDateVal: number}}
 const lastActiveTabKey = "lastActiveTab"; // {url: string, lastDateVal: number}
-let totalSeconds;
+let websiteSeconds = 0;
+let totalSeconds = 0;
 
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById("add-row-button").addEventListener("click", (e) => addRow());
     document.getElementById("edit-table-button").addEventListener("click", (e) => madeTableEditable());
     document.getElementById("save-table-button").addEventListener("click", (e) => saveTable());
+    document.getElementById("token-button").addEventListener("click", (e) => onTokenBtnClicked());
+
 
     chrome.storage.local.get(tabTimeObjectKey, (result) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
             let activeTab = tabs[0];
             let currentHostName = new URL(activeTab.url).hostname;
-            totalSeconds = Math.round(JSON.parse(result[tabTimeObjectKey])[currentHostName].trackedSeconds);
+            websiteSeconds = Math.round(JSON.parse(result[tabTimeObjectKey])[currentHostName].trackedSeconds);
+
+            document.getElementById("website-timer-tab-button").innerHTML = currentHostName;
         });
+    });
+
+    chrome.storage.local.get(["totalTime"], (storageData) => {
+        totalSeconds = storageData["totalTime"] ? storageData["totalTime"] : 0;
     });
 
     if (!document.getElementById("table-body").hasChildNodes()) {
         chrome.storage.local.get("limits").then((limits) => {
+            if (limits["limits"] === undefined) {
+                return;
+            }
+
             const jsonLimits = JSON.parse(limits["limits"]);
             let limitsLength = jsonLimits.length;
-            
+
             let tableBody = document.getElementById("table-body");
-    
+
             for (let i = 0; i < limitsLength; i++) {
                 const tr = document.createElement("tr");
                 tableBody.append(tr);
-    
+
                 const td1 = document.createElement("td");
                 td1.innerHTML = jsonLimits[i].hostname;
                 tr.appendChild(td1);
-    
+
                 const td2 = document.createElement("td");
                 td2.innerHTML = jsonLimits[i].time;
                 tr.appendChild(td2);
@@ -38,38 +51,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// chrome.runtime.onInstalled(function() {
-//     let totalTimeData = {};
-
-//     chrome.storage.local.get(["totalTime"]).then((storageData) => {
-//        storageData = storageData["totalTime"];
-//     });
-// });
-
-// chrome.runtime.onStartup.addListener(function() {
-//     chrome.storage.local.get("limits").then((limits) => {
-//         const jsonLimits = JSON.parse(limits["limits"]);
-//         let limitsLength = jsonLimits.length;
-        
-//         let tableBody = document.getElementById("table-body");
-
-//         for (let i = 0; i < limitsLength; i++) {
-//             const tr = document.createElement("tr");
-//             tableBody.append(tr);
-
-//             const td1 = document.createElement("td");
-//             td1.innerHTML = jsonLimits[i].hostname;
-//             tr.appendChild(td1);
-
-//             const td2 = document.createElement("td");
-//             td2.innerHTML = jsonLimits[i].time;
-//             tr.appendChild(td2);
-//         }
-//     });
-// });
-
 setInterval(() => {
-    setTime(totalSeconds);
+    setTime("website-timer-text", websiteSeconds);
+    setTime("timer-text", totalSeconds);
+
+    websiteSeconds++;
     totalSeconds++;
 }, 1000);
 
@@ -82,28 +68,11 @@ function align(value) {
     }
 }
 
-function setTime(totalSeconds) {
+function setTime(timerId, totalSeconds) {
     let seconds = align(totalSeconds % 60);
     let minutes = align(parseInt(totalSeconds / 60) % 60);
     let hours = align(parseInt(totalSeconds / 3600));
-    document.getElementById("timer-text").innerHTML = hours + ":" + minutes + ":" + seconds;
-}
-
-function openTab(event, tabName) {
-    let i, tabcontent, tablinks;
-
-    tabcontent = document.getElementsByClassName("tab-content");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
-
-    tablinks = document.getElementsByClassName("tab-links");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-
-    document.getElementById(tabName).style.display = "flex";
-    event.currentTarget.className += " active";
+    document.getElementById(timerId).innerHTML = hours + ":" + minutes + ":" + seconds;
 }
 
 function addRow() {
@@ -212,17 +181,119 @@ function saveTableData() {
         data[i] = dict;
     }
 
-    console.log(JSON.stringify({ "limits": data }));
+    console.log(JSON.stringify({"limits": data}));
 
     chrome.storage.local.get(["limits"]).then((limits) => {
         let newLimits = {};
         newLimits["limits"] = JSON.stringify(data);
         chrome.storage.local.set(newLimits);
 
-        if (rows.length === JSON.parse(limits["limits"]).length) {
-            //TODO: PUT requests here
-        } else {
-            //TODO: POST request here
-        }
+        let token = {};
+        chrome.storage.local.get(["token"]).then((storageData) => {
+            token = storageData["token"]
+            for (let i = 0; i < rows.length; i++) {
+                const payload = {
+                    url: data[i].hostname,
+                    limitTime: data[i].time,
+                    user_id: { token: token },
+                };
+                console.log(JSON.stringify(payload))
+                var ulrStr = 'http://localhost:8080/user/' + token + '/limit';
+                fetch(ulrStr.toString(), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                })
+                    .then((response) => {
+                        if (response.ok) {
+                            console.log('Запрос успешно выполнен.');
+                        } else {
+                            console.error('Ошибка выполнения запроса.');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Ошибка:', error);
+                    });
+
+            }
+            if (rows.length !== JSON.parse(limits["limits"]).length) {
+
+                let min = Math.min(rows.length, JSON.parse(limits["limits"]).length);
+                let max = Math.max(rows.length, JSON.parse(limits["limits"]).length);
+                for (let i = min; i < max; i++) {
+                    const payload2 = {
+                        url: data[i].hostname,
+                        limitTime: data[i].time,
+                        user_id: { token: token },
+                    };
+                    console.log(JSON.stringify(payload2))
+                    var ulrStr = 'http://localhost:8080/user/' + token + '/limit';
+                    fetch(ulrStr.toString(), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload2),
+                    })
+                        .then((response) => {
+                            if (response.ok) {
+                                console.log('Запрос успешно выполнен.');
+                            } else {
+                                console.error('Ошибка выполнения запроса.');
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Ошибка:', error);
+                        });
+                }
+            }
+        });
+
+
+
+
+    });
+}
+
+
+async function onTokenBtnClicked() {
+    document.getElementById("token-button").remove();
+
+    let input = document.createElement("input")
+    input.setAttribute("type", "text");
+    input.setAttribute("class", "form-control text-center");
+    input.readOnly = true;
+
+    const token = await getToken();
+    input.value = token;
+
+    document.getElementById("token-container").appendChild(input);
+}
+
+async function getToken() {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(["token"]).then((storageData) => {
+            if (storageData["token"]) {
+                console.log('TokenIs');
+                resolve(storageData["token"].toString());
+            } else {
+                fetch('http://localhost:8080/user', {
+                    method: 'POST'
+                })
+                    .then(response => response.text())
+                    .then(data => {
+                        console.log(data); // Вывод полученного токена в консоль
+                        // Дальнейшая обработка полученных данных
+                        chrome.storage.local.set({token: data});
+                        resolve(data);
+                    })
+                    .catch(error => {
+                        console.error('Произошла ошибка:', error);
+                        reject(error);
+                    });
+            }
+        });
     });
 }

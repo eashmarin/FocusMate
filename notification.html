@@ -1,0 +1,33 @@
+<link rel="stylesheet" href="bootstrap-5.3.0-alpha3-dist/js/bootstrap.min.js"/>
+<style>
+    #notification {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 9999;
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
+        padding: 10px;
+        border-radius: 4px;
+    }
+
+    #notification .close {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        color: #000;
+        opacity: 0.5;
+        font-size: 18px;
+    }
+
+    #notification .close:hover {
+        opacity: 1;
+        cursor: pointer;
+    }
+</style>
+
+<div id="notification" class="alert alert-info" role="alert">
+    <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"></button>
+    <h4 class="alert-heading">Время сделать перерыв!</h4>
+    <p>Вы уже провели достаточно времени за компьютером. Рекомендуется сделать небольшой перерыв.</p>
+</div>
